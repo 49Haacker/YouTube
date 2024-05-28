@@ -12,5 +12,8 @@
     "backend"
   ],
   "author": "Gaurav Tiwari",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^3.2.5"
+  }
 }
