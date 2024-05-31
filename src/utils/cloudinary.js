@@ -10,6 +10,10 @@ cloudinary.config({
 
 // Upload an image
 const uploadOnCloudinary = async (localFilePath) => {
+  if (!localFilePath || typeof localFilePath !== "string") {
+    throw new Error("Invalid file path");
+  }
+
   try {
     // upload file on cloudinary
     const response = await cloudinary.uploader.upload(localFilePath, {
@@ -17,12 +21,25 @@ const uploadOnCloudinary = async (localFilePath) => {
     });
 
     // file has been uploaded sucessfully
-    console.log("file is uploaded on cloudinary", response);
+    // console.log("file is uploaded on cloudinary", response.url);
+
+    // Remove the locally saved temporary file
+    fs.unlinkSync(localFilePath);
 
     return response;
   } catch (error) {
-    fs.unlinkSync(localFilePath);
+    console.error("Error uploading to Cloudinary:", error);
+
+    // fs.unlinkSync(localFilePath);
+    if (localFilePath && typeof localFilePath === "string") {
+      try {
+        fs.unlinkSync(localFilePath);
+      } catch (unlinkError) {
+        console.error("Error deleting local file:", unlinkError);
+      }
+    }
     // remover the locally saved temporary file as the upload operation got faild return null
+    throw error;
   }
 };
 
