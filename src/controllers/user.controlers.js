@@ -123,42 +123,42 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   // verify the password here isPasswordCorrect is method which create in user.model.js
-  // const ispasswordValid = await existingUser.isPasswordCorrect(password);
-  // if (!ispasswordValid) {
-  //   throw new ApiError(401, "Invalid user credentials");
-  // }
+  const ispasswordValid = await existingUser.isPasswordCorrect(password);
+  if (!ispasswordValid) {
+    throw new ApiError(401, "Invalid user credentials");
+  }
 
-  // const { AccessToken, RefrshToken } = await generateAccessAndRefereshTokens(
-  //   existingUser._id
-  // );
+  const { AccessToken, RefrshToken } = await generateAccessAndRefereshTokens(
+    existingUser._id
+  );
 
-  // // send in cookies
+  // send in cookies
 
-  // const loggedInUser = await User.findById(existingUser._id).select(
-  //   "-password -refreshToken"
-  // );
+  const loggedInUser = await User.findById(existingUser._id).select(
+    "-password -refreshToken"
+  );
 
-  // // when send cookies then use this option this helps to only modified only by server
-  // const options = {
-  //   httpOnly: true,
-  //   secure: true,
-  // };
+  // when send cookies then use this option this helps to only modified only by server
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
 
-  // return res
-  //   .status(200)
-  //   .cookie("accessToken", AccessToken, options)
-  //   .cookie("refreshToken", RefrshToken, options)
-  //   .json(
-  //     new ApiResponse(
-  //       200,
-  //       {
-  //         user: loggedInUser,
-  //         AccessToken,
-  //         RefrshToken,
-  //       },
-  //       "User logged in Successfully"
-  //     )
-  //   );
+  return res
+    .status(200)
+    .cookie("accessToken", AccessToken, options)
+    .cookie("refreshToken", RefrshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedInUser,
+          AccessToken,
+          RefrshToken,
+        },
+        "User logged in Successfully"
+      )
+    );
 });
 
 const logOutUser = asyncHandler(async (req, res) => {
