@@ -1,6 +1,11 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controlers.js";
+import {
+  logOutUser,
+  loginUser,
+  registerUser,
+} from "../controllers/user.controlers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
+import { verifyJwt } from "../middlewares/auth.middlewares.js";
 
 const router = Router();
 
@@ -19,5 +24,12 @@ router.post(
   ]),
   registerUser
 );
+
+// upload.none() if use this middleware then you can accept the data in row in postman
+
+router.post("/login", upload.none(), loginUser);
+
+// secured routes
+router.post("/logout", verifyJwt, logOutUser);
 
 export default router;
