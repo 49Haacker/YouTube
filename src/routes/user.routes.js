@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   logOutUser,
   loginUser,
+  refreshAccessToken,
   registerUser,
 } from "../controllers/user.controlers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
@@ -27,9 +28,12 @@ router.post(
 
 // upload.none() if use this middleware then you can accept the data in row in postman
 
-router.post("/login", upload.none(), loginUser);
+router.post("/login", loginUser);
 
 // secured routes
 router.post("/logout", verifyJwt, logOutUser);
+
+// regenrate access token using refreshtoken if accessToken is expire
+router.post("/refres-token", refreshAccessToken);
 
 export default router;
