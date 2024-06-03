@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.models.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -255,4 +255,174 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser, loginUser, logOutUser, refreshAccessToken };
+// chnage the password
+const chnageCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword, confPassword } = req.body;
+  // console.log(req.body);
+
+  if (!(newPassword === confPassword)) {
+    throw new ApiError(401, "password was not match");
+  }
+
+  const user = await User.findById(req.user?._id); // here come the user info and req.user we access because we have write the middleware in routes of chnage password middlware was jwtVeify here verify the token and return the user info in re.user
+
+  // console.log(user);
+
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword); // isPasswordCorrect is a method which accept value password to verify the password this menthod write in user.model.js file
+
+  // console.log(isPasswordCorrect);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Invalid old password");
+  }
+
+  user.password = newPassword; // in user object chnage the password filed to newPassword now save the user in db
+
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password chnage successfully"));
+});
+
+// get current user info
+const getCurrentUser = asyncHandler(async (req, res) => {
+  // console.log(req.user);
+  // const currentUser = req.user;
+
+  // if (!currentUser) {
+  //   throw new ApiError(401, "unauthorize");
+  // }
+
+  // console.log(currentUser);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "current user fetch successfully"));
+});
+
+// update account details
+const updateAccoutnDetails = asyncHandler(async (req, res) => {
+  const { fullname, email, username } = req.body;
+
+  // console.log(req.body);
+
+  if (!fullname || !email || !username) {
+    throw new ApiError(400, "All fileds are required");
+  }
+
+  // console.log(req.user);
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    { $set: { fullname, email: email, username: username } },
+    { new: true }
+  ).select("-password");
+
+  // console.log("updated users ", user);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Account detail updated successfully"));
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  // req.files come from mullter middleware
+  // const avatarLocalPath = req.fils?.path;
+  const avatarLocalPath = req.files?.avatar[0]?.path;
+
+  // console.log(avatarLocalPath);
+
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar file is missing");
+  }
+
+  // TODO: delete old image - assignment
+
+  // here after uploade avatar succesfully uopload on cloudinary
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+  // console.log(avatar);
+
+  if (!avatar.url) {
+    throw new ApiError(400, "Error while uploading on avatar");
+  }
+
+  // console.log(req.user.avatar);
+
+  await deleteOnCloudinary(req.user.avatar);
+
+  // if (destroy.result === "not found") {
+  //   throw new ApiError(401, "Image Not deleted form cloudinary");
+  // }
+
+  // console.log("delte image ", destroy.url);
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        avatar: avatar.url,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Avatar image updated successfully"));
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  // req.files come from mullter middleware
+  // const coverImageLocalPath = req.fils?.path;
+  const coverImageLocalPath = req.files.coverImage[0].path;
+
+  // console.log(coverImageLocalPath);
+
+  if (!coverImageLocalPath) {
+    throw new ApiError(400, "coverImage file is missing");
+  }
+
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  if (!coverImage.url) {
+    throw new ApiError(400, "Error while uploading on coverImage");
+  }
+
+  // console.log(req.user.avatar);
+
+  await deleteOnCloudinary(req.user.coverImage);
+
+  // if (destroy.result === "not found") {
+  //   throw new ApiError(401, "Image Not deleted form cloudinary");
+  // }
+
+  // console.log("delte image ", destroy.url);
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        coverImage: coverImage.url,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "cover image updated successfully"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logOutUser,
+  refreshAccessToken,
+  chnageCurrentPassword,
+  getCurrentUser,
+  updateAccoutnDetails,
+  updateUserAvatar,
+  updateUserCoverImage,
+};
