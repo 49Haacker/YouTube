@@ -175,7 +175,8 @@ const logOutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
     {
-      $set: { refreshToken: undefined },
+      // $set: { refreshToken: undefined },
+      $unset: { refreshToken: 1 }, // this remove filed from backend
     },
     {
       new: true,
@@ -424,7 +425,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 
   // aggregation piplene
   // User.find({ username });
-  const channel = await User.aggregat([
+  const channel = await User.aggregate([
     // first lookup match the user
     {
       $match: {
@@ -495,13 +496,12 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, channel[0]),
-      "User channel fetched successfully"
+      new ApiResponse(200, channel[0], "User channel fetched successfully")
     );
 });
 
 const getWatchHistory = asyncHandler(async (req, res) => {
-  const user = await User.aggregat([
+  const user = await User.aggregate([
     {
       $match: {
         _id: new mongoose.Types.ObjectId(req.user._id),

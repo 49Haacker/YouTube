@@ -47,7 +47,7 @@ router.post("/refres-token", refreshAccessToken);
 router.post("/chnage-password", verifyJwt, chnageCurrentPassword);
 
 // get current user
-router.post("/current-user", verifyJwt, getCurrentUser);
+router.get("/current-user", verifyJwt, getCurrentUser);
 
 // update account details
 router.patch("/update-user", verifyJwt, updateAccoutnDetails);
@@ -70,6 +70,6 @@ router.patch(
 
 router.get("/c/:username", verifyJwt, getUserChannelProfile);
 
-router.get("/watch-history", verifyJwt, getWatchHistory);
+router.get("/user-history", verifyJwt, getWatchHistory);
 
 export default router;
